@@ -2,7 +2,7 @@
 
 A fast, modern desktop app for bulk image processing. Compress, resize, convert, rotate, and watermark hundreds of images in seconds — with a clean dark UI and real-time output size preview.
 
-**Works on Windows, macOS, and Linux.**
+**Windows**
 
 [![Download Latest Release](https://img.shields.io/badge/Download-Latest%20Release-34d399?style=for-the-badge&logo=github)](https://github.com/ajithjojo/PixelBear---Bulk-Image-compress-convert-resize-watermark/releases/tag/Release)
 
@@ -10,13 +10,13 @@ A fast, modern desktop app for bulk image processing. Compress, resize, convert,
 
 ## Download
 
-👉 **[Download PixelBear (Windows / macOS)](https://github.com/ajithjojo/PixelBear---Bulk-Image-compress-convert-resize-watermark/releases/tag/Release)**
+👉 **[Download PixelBear for Windows](https://github.com/ajithjojo/PixelBear---Bulk-Image-compress-convert-resize-watermark/releases/tag/Release)**
 
 ---
 
-## Screenshots
+## Screenshot
 
-> _Coming soon_
+![PixelBear Screenshot](https://pixelbear.getecz.com/screen.png)
 
 ---
 
@@ -110,22 +110,13 @@ pyinstaller pixelbear.spec --noconfirm
 # Output: dist/PixelBear-1.0.0-Setup.exe
 ```
 
-### macOS (.dmg)
-```bash
-brew install create-dmg
-pip install pyinstaller
-chmod +x build_mac.sh
-./build_mac.sh
-# Output: dist/PixelBear-1.0.0.dmg
-```
-
 ### CI/CD (GitHub Actions)
-Push a version tag to automatically build both platforms:
+Push a version tag to automatically build:
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
-The `.github/workflows/build.yml` workflow will build the Windows `.exe` and macOS `.dmg`, then create a GitHub Release with both attached.
+The `.github/workflows/build.yml` workflow will build the Windows `.exe` and create a GitHub Release with it attached.
 
 ---
 
