@@ -82,7 +82,7 @@ coll = COLLECT(
 # On macOS, bundle into a .app
 if IS_MAC:
     app = BUNDLE(
-        exe,
+        coll,
         name=f"{APP_NAME}.app",
         icon="icon.icns" if Path("icon.icns").exists() else None,
         bundle_identifier="com.getecz.pixelbear",
