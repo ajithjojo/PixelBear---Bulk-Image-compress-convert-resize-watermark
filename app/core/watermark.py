@@ -39,9 +39,6 @@ def apply_watermark(base_rgba: Image.Image, *, kind: str, text: str = "",
                     wm_image: str = "", position: str = "bottom-right",
                     opacity: int = 60, font_size: int = 36,
                     color: tuple = (255, 255, 255), wm_scale_pct: int = 20) -> Image.Image:
-    """Apply watermark to an RGBA PIL image and return a new RGBA image.
-    Pure function — does no I/O on the base image.
-    """
     cw, ch = base_rgba.size
     layer = Image.new("RGBA", base_rgba.size, (0, 0, 0, 0))
     alpha = max(0, min(255, int(opacity * 255 / 100)))
@@ -75,10 +72,45 @@ def apply_watermark(base_rgba: Image.Image, *, kind: str, text: str = "",
     return Image.alpha_composite(base_rgba, layer)
 
 
+def apply_multi_image_watermarks(base_rgba: Image.Image, *,
+                                 watermarks: list, opacity: int = 60) -> Image.Image:
+    cw, ch = base_rgba.size
+    layer = Image.new("RGBA", base_rgba.size, (0, 0, 0, 0))
+    alpha = max(0, min(255, int(opacity * 255 / 100)))
+
+    for wm_info in watermarks:
+        try:
+            with Image.open(wm_info["path"]) as wm:
+                wm = wm.convert("RGBA")
+                target_w = max(1, int(cw * wm_info["w_frac"]))
+                ratio = target_w / wm.width
+                target_h = max(1, int(wm.height * ratio))
+                wm = wm.resize((target_w, target_h), Image.LANCZOS)
+                if alpha < 255:
+                    r, g, b, a = wm.split()
+                    a = a.point(lambda px: int(px * alpha / 255))
+                    wm = Image.merge("RGBA", (r, g, b, a))
+                x = int(cw * wm_info["x_frac"])
+                y = int(ch * wm_info["y_frac"])
+                layer.paste(wm, (x, y), wm)
+        except Exception:
+            pass
+
+    return Image.alpha_composite(base_rgba, layer)
+
+
 def watermark_image(src: str, dest: str, **kwargs):
     with Image.open(src) as base:
         original_format = (base.format or "PNG").upper()
         base_rgba = base.convert("RGBA")
+
+    if "watermarks" in kwargs:
+        out = apply_multi_image_watermarks(
+            base_rgba,
+            watermarks=kwargs["watermarks"],
+            opacity=kwargs.get("opacity", 60),
+        )
+    else:
         out = apply_watermark(base_rgba, **kwargs)
 
     save_kwargs = {}
@@ -90,9 +122,8 @@ def watermark_image(src: str, dest: str, **kwargs):
     out.save(dest, format=fmt, **save_kwargs)
 
 
-def run_watermark_batch(files, out_root, *, kind, text, wm_image, position, opacity,
-                        font_size, color, wm_scale_pct,
-                        progress_cb=None, log_cb=None, cancel_cb=None):
+def run_watermark_batch(files, out_root, *,
+                        progress_cb=None, log_cb=None, cancel_cb=None, **kwargs):
     total = len(files)
     done = 0
     for f in files:
@@ -100,9 +131,7 @@ def run_watermark_batch(files, out_root, *, kind, text, wm_image, position, opac
             break
         try:
             dest = utils.flat_output_path(f, out_root)
-            watermark_image(f, dest, kind=kind, text=text, wm_image=wm_image,
-                            position=position, opacity=opacity, font_size=font_size,
-                            color=color, wm_scale_pct=wm_scale_pct)
+            watermark_image(f, dest, **kwargs)
             if log_cb:
                 log_cb(f"OK   {f}")
         except Exception as e:
