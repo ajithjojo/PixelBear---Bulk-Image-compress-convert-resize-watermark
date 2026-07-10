@@ -15,6 +15,7 @@ class CompressTab(QWidget):
         super().__init__()
         self.worker: BatchWorker | None = None
         self._estimate_worker: EstimateWorker | None = None
+        self._retiring_workers: list[EstimateWorker] = []
 
         self.queue = FileQueue()
         self.out_picker = FolderPicker("Output folder")
@@ -67,12 +68,18 @@ class CompressTab(QWidget):
         # ---------- Estimate (debounced) ----------
         self._estimate_timer = QTimer(self)
         self._estimate_timer.setSingleShot(True)
-        self._estimate_timer.setInterval(400)
+        self._estimate_timer.setInterval(2000)
         self._estimate_timer.timeout.connect(self._run_estimate)
 
-        self.quality.valueChanged.connect(lambda _: self._estimate_timer.start())
-        self.format.currentIndexChanged.connect(lambda _: self._estimate_timer.start())
-        self.queue.countChanged.connect(lambda _: self._estimate_timer.start())
+        self.quality.valueChanged.connect(lambda _: self._on_option_changed())
+        self.format.currentIndexChanged.connect(lambda _: self._on_option_changed())
+        self.queue.countChanged.connect(lambda _: self._on_option_changed())
+
+    def _on_option_changed(self):
+        # Immediately clear stale estimates and show a loading state; the
+        # actual (re)calculation only kicks off after the debounce timer.
+        self.queue.mark_all_pending()
+        self._estimate_timer.start()
 
     def _run_estimate(self):
         files = self.queue.files()
@@ -81,6 +88,7 @@ class CompressTab(QWidget):
 
         if self._estimate_worker and self._estimate_worker.isRunning():
             self._estimate_worker.cancel()
+            self._retire_worker(self._estimate_worker)
 
         quality = self.quality.value()
         fmt = self.format.currentText()
@@ -92,6 +100,17 @@ class CompressTab(QWidget):
         self._estimate_worker = EstimateWorker(files, estimator)
         self._estimate_worker.result.connect(self.queue.set_estimate)
         self._estimate_worker.start()
+
+    def _retire_worker(self, worker: EstimateWorker):
+        """Keep a cancelled worker referenced until its thread actually
+        finishes, so Qt never destroys a QThread while it's still running."""
+        self._retiring_workers.append(worker)
+
+        def cleanup():
+            if worker in self._retiring_workers:
+                self._retiring_workers.remove(worker)
+
+        worker.finished.connect(cleanup)
 
     def start(self):
         files = self.queue.files()

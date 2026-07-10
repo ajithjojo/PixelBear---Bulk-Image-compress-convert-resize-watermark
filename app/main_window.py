@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QMessageBox,
-    QListWidget, QListWidgetItem, QStackedWidget, QFrame, QScrollArea, QPushButton
+    QTabBar, QStackedWidget, QFrame, QScrollArea, QPushButton
 )
 
 from app.tools_registry import TOOLS
@@ -25,18 +25,18 @@ class MainWindow(QMainWindow):
             self.setWindowIcon(QIcon(icon_path))
 
         root = QWidget()
-        root_lay = QHBoxLayout(root)
+        root_lay = QVBoxLayout(root)
         root_lay.setContentsMargins(0, 0, 0, 0)
         root_lay.setSpacing(0)
 
-        root_lay.addWidget(self._build_sidebar())
+        root_lay.addWidget(self._build_topbar())
         root_lay.addWidget(self._build_content(), 1)
 
         self.setCentralWidget(root)
         self.statusBar().showMessage("Ready")
 
         # Select first tool
-        self.nav.setCurrentRow(0)
+        self.nav.setCurrentIndex(0)
 
         # Update checker state
         self._update_checker: UpdateChecker | None = None
@@ -45,58 +45,50 @@ class MainWindow(QMainWindow):
         # Auto-check for updates shortly after the window shows
         QTimer.singleShot(1500, self._check_for_updates)
 
-    # ---------- Sidebar ----------
-    def _build_sidebar(self) -> QWidget:
-        sidebar = QWidget()
-        sidebar.setObjectName("sidebar")
-        sidebar.setFixedWidth(230)
+    # ---------- Top bar ----------
+    def _build_topbar(self) -> QWidget:
+        topbar = QWidget()
+        topbar.setObjectName("topbar")
 
-        lay = QVBoxLayout(sidebar)
-        lay.setContentsMargins(0, 0, 0, 12)
-        lay.setSpacing(0)
+        lay = QHBoxLayout(topbar)
+        lay.setContentsMargins(18, 0, 18, 0)
+        lay.setSpacing(12)
 
         title = QLabel("🐻 PixelBear")
         title.setObjectName("appTitle")
-        subtitle = QLabel("IMAGE TOOLKIT")
-        subtitle.setObjectName("appSubtitle")
 
-        section = QLabel("TOOLS")
-        section.setObjectName("sectionLabel")
-
-        self.nav = QListWidget()
-        self.nav.setObjectName("navList")
-        self.nav.setFrameShape(QFrame.NoFrame)
-        self.nav.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.nav.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.nav = QTabBar()
+        self.nav.setObjectName("navTabs")
+        self.nav.setExpanding(False)
+        self.nav.setDrawBase(False)
+        self.nav.setUsesScrollButtons(True)
 
         for tool in TOOLS:
-            item = QListWidgetItem(tool.name)
-            item.setToolTip(tool.subtitle)
-            self.nav.addItem(item)
+            label = f"{tool.icon}  {tool.name}" if tool.icon else tool.name
+            index = self.nav.addTab(label)
+            self.nav.setTabToolTip(index, tool.subtitle)
 
-        self.nav.currentRowChanged.connect(self._on_nav_changed)
+        self.nav.currentChanged.connect(self._on_nav_changed)
 
         self.update_btn = QPushButton("Check for updates")
         self.update_btn.setStyleSheet(
             "QPushButton { background: transparent; border: none; color: #64748b;"
-            " text-align: left; padding: 6px 18px; font-size: 11px; }"
+            " text-align: left; padding: 6px 8px; font-size: 11px; }"
             "QPushButton:hover { color: #a5b4fc; }"
         )
         self.update_btn.setCursor(Qt.PointingHandCursor)
         self.update_btn.clicked.connect(self._manual_check_for_updates)
 
         version = QLabel(f"v{APP_VERSION}")
-        version.setStyleSheet("color: #475569; font-size: 10px; padding: 2px 18px 4px 18px;")
-        version.setAlignment(Qt.AlignLeft)
+        version.setStyleSheet("color: #475569; font-size: 10px; padding: 2px 4px;")
 
         lay.addWidget(title)
-        lay.addWidget(subtitle)
-        lay.addWidget(section)
-        lay.addWidget(self.nav, 1)
+        lay.addWidget(self.nav)
+        lay.addStretch(1)
         lay.addWidget(self.update_btn)
         lay.addWidget(version)
 
-        return sidebar
+        return topbar
 
     # ---------- Content area ----------
     def _build_content(self) -> QWidget:

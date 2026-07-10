@@ -24,6 +24,7 @@ class Tool:
     name: str
     subtitle: str
     factory: Callable[[], QWidget]
+    icon: str = ""
 
 
 TOOLS: list[Tool] = [
@@ -32,29 +33,34 @@ TOOLS: list[Tool] = [
         name="Compress",
         subtitle="Reduce file size with quality control",
         factory=CompressTab,
+        icon="🗜️",
     ),
     Tool(
         key="resize",
         name="Resize",
         subtitle="Resize images by dimensions or percentage",
         factory=ResizeTab,
+        icon="📐",
     ),
     Tool(
         key="convert",
         name="Convert",
         subtitle="Convert images to JPG, PNG, or WebP",
         factory=ConvertTab,
+        icon="🔄",
     ),
     Tool(
         key="rotate",
         name="Rotate & Flip",
         subtitle="Rotate or flip images in bulk",
         factory=RotateTab,
+        icon="🔁",
     ),
     Tool(
         key="watermark",
         name="Watermark",
         subtitle="Add text or image watermarks with live preview",
         factory=WatermarkTab,
+        icon="🖼️",
     ),
 ]

@@ -23,61 +23,42 @@ QMainWindow, QWidget {
     background-color: #0b1020;
 }
 
-/* ---------- Sidebar ---------- */
-QWidget#sidebar {
+/* ---------- Top bar ---------- */
+QWidget#topbar {
     background-color: #0e1426;
-    border-right: 1px solid #1e2740;
+    border-bottom: 1px solid #1e2740;
+    min-height: 52px;
+    max-height: 52px;
 }
 
 QLabel#appTitle {
     color: #f1f5f9;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 700;
-    padding: 18px 18px 2px 18px;
     background: transparent;
-}
-QLabel#appSubtitle {
-    color: #64748b;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 0 18px 14px 18px;
-    background: transparent;
-    letter-spacing: 0.5px;
-}
-QLabel#sectionLabel {
-    color: #64748b;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 10px 18px 6px 18px;
-    background: transparent;
-    letter-spacing: 1.2px;
 }
 
-QListWidget#navList {
+QTabBar#navTabs {
     background: transparent;
-    border: none;
-    outline: 0;
-    padding: 4px 8px;
 }
-QListWidget#navList::item {
+QTabBar#navTabs::tab {
     background: transparent;
     border: none;
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin: 2px 4px;
+    border-bottom: 3px solid transparent;
     color: #94a3b8;
     font-weight: 500;
+    padding: 16px 28px;
+    margin: 0;
+    min-width: 110px;
 }
-QListWidget#navList::item:hover {
-    background: #1b2236;
+QTabBar#navTabs::tab:hover {
     color: #e5e7eb;
+    background: #141b2d;
 }
-QListWidget#navList::item:selected {
-    background: #1e2a4d;
+QTabBar#navTabs::tab:selected {
     color: #a5b4fc;
     font-weight: 600;
-    border-left: 3px solid #818cf8;
-    padding-left: 11px;
+    border-bottom: 3px solid #818cf8;
 }
 
 /* ---------- Main content ---------- */

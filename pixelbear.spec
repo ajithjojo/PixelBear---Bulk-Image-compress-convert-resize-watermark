@@ -31,6 +31,7 @@ a = Analysis(
     binaries=[],
     datas=[
         ("icon.png", "."),
+        ("app/images/watermark.jpg", "app/images"),
     ],
     hiddenimports=hiddenimports,
     hookspath=[],
